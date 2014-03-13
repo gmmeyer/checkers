@@ -35,7 +35,7 @@ class Board
     2.times do
 
       @n_of_pieces.times do |i|
-        board[spaces[i][0]][spaces[i][1]] = Piece.new(color, spaces[i], self)
+        Piece.new(color, spaces[i], self)
       end
 
       spaces.reverse!
@@ -59,7 +59,7 @@ class Board
 
     pieces.each do |piece|
       pos = piece.position.dup
-      dup_board[pos] = Piece.new(piece.color, pos, dup_board, piece.type)
+      Piece.new(piece.color, pos, dup_board, piece.type)
     end
 
     dup_board

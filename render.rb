@@ -1,5 +1,8 @@
 class Render
 
+  #put this back into board.rb and piece.rb
+  #refactor heavily
+
   def initialize(board)
     @board = board
 
