@@ -1,12 +1,17 @@
+# encoding: utf-8
+require 'colorize'
 require_relative 'checkers'
+require_relative 'board'
+require_relative 'piece'
+require_relative 'render'
+
 
 a = Board.new
-a.render
+render = Render.new(a)
+render.render
 
-a.board[3][6].perform_slide([3,6], [4,7])
-puts ' '
-a.render
+g = a.dup
 
-a.board[5][6].perform_jump([5,6], [4,7], [3,6])
-puts ' '
-a.render
+a[[2,5]].perform_moves([[2,5],[3,6]])
+
+render.render
