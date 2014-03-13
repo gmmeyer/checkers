@@ -6,19 +6,14 @@ end
 
 class Board
 
-  attr_reader :board
+  attr_accessor :board
 
   def initialize(n_of_pieces = 12)
     @n_of_pieces = n_of_pieces
     @board = make_board
     set_board
+    nil
   end
-
-  # def [](pos)
-  #   col, row = pos
-  #   grid[col][row]
-  # end
-
 
   def make_board
     Array.new(8) { Array.new(8) }
@@ -34,24 +29,23 @@ class Board
       set_pieces(color, order)
       color = :red
       order.reverse!
-      @board.reverse!
 
     end
-    @board.reverse!
   end
 
   def set_pieces(color, order)
     row_count = 0
     piece_count = 0
     @board.length.times do |y|
+      y += 5 if color == :red
       row_order = order[row_count]
       @board[0].length.times do |x|
-        puts "x: #{x}, y: #{y}"
+        #puts "x: #{x}, y: #{y}"
         if x.even? && row_order == 'even'
-          @board[y][x] = Piece.new(color, [x,y], @board)
+          @board[y][x] = Piece.new(color, [y,x], self)
           piece_count += 1
         elsif x.odd? && row_order == 'odd'
-          @board[y][x] = Piece.new(color, [x,y], @board)
+          @board[y][x] = Piece.new(color, [y,x], self)
           piece_count += 1
         end
         break if piece_count == @n_of_pieces
@@ -61,28 +55,27 @@ class Board
   end
 
   def render
-
+    @board.each do |row|
+      row.each do |piece|
+        if piece
+          print "#{piece.render} "
+        else
+          print "  "
+        end
+      end
+      print "\n"
+    end
   end
 
 
   def move_piece(start_pos, end_pos)
-    move_start = self[start_pos[0]][start_pos[1]]
-    move_end = self[end_pos[0]][end_pos[1]]
-    move_start, move_end = nil, move_start
+    @board[end_pos[0]][end_pos[1]],
+    @board[start_pos[0]][start_pos[1]] =
+    @board[start_pos[0]][start_pos[1]],
+    nil
   end
 
-
-
-  # def []=(pos,value)
-  #   col,row = pos
-  #   grid[col][row] = value
-  # end
-
 end
-
-
-
-
 
 
 
@@ -112,30 +105,34 @@ class Piece
 
   def perform_jump(start_pos, jump_path, end_pos)
 
-    unless check_jump(start_pos, first_jump, end_pos)
+    unless check_jump(start_pos, jump_path, end_pos)
       raise "I can't let you do that, Dave"
     end
 
-    unless check_jump_path(start_pos, jump_path, end_pos)
-      @board.move_piece(start_pos, end_pos)
-      @position = [start_pos, end_pos]
+    #if check_jump_path(start_pos, jump_path, end_pos)
+    jumps = [start_pos] + [jump_path] + [end_pos]
+    (jumps.length - 1).times do |i|
+        @board.move_piece(jumps[i], jumps[i+1])
+        @position = [jumps[i+1][0], jumps[i+1][1]]
     end
+    #end
   end
 
   def check_slide(start_pos, end_pos)
-
-    if start_pos && end_pos.nil?
-      if start_pos[0] + 1 == end_pos[0] && start_pos[1] + 1 == end_pos[1]
-        return true
+    #puts 'hi'
+    return true unless @board.board[end_pos[0]] && @board.board[end_pos[0]][end_pos[1]]
+    if !start_pos.nil? && end_pos.nil?
+      if start_pos[0] + 1 == end_pos[0] &&
+        if start_pos[1] + 1 == end_pos[1] || start_pos[1] - 1 == end_pos[1]
+          return true
+        end
       end
     end
     false
   end
 
-
-
   def check_jump(start_pos, jump_path, end_pos)
-    if start_pos && !jump_path.empty? && end_pos.nil?
+    if @board.board[start_pos[0]][start_pos[1]] && !jump_path.empty? && @board.board[end_pos[0]][end_pos[1]].nil?
       return true
     end
     false
@@ -176,7 +173,5 @@ class Piece
       type = :king
     end
   end
-
-
 
 end
