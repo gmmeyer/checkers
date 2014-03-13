@@ -15,6 +15,10 @@ class Board
     nil
   end
 
+  def [](row, col)
+    @board[row][col]
+  end
+
   def make_board
     Array.new(8) { Array.new(8) }
   end
@@ -22,36 +26,28 @@ class Board
   def set_board
     #extensive fixing
     color = :black
-    order = ['odd', 'even', 'odd', 'even']
+    spaces = proper_moves
 
     2.times do
 
+      n_of_pieces.times do |i|
+        self[spaces[i][0], spaces[i][1]] = Piece.new(color, spaces[i], self)
+      end
+
+      spaces.reverse!
       set_pieces(color, order)
       color = :red
-      order.reverse!
-
     end
   end
 
-  def set_pieces(color, order)
-    row_count = 0
-    piece_count = 0
-    @board.length.times do |y|
-      y += 5 if color == :red
-      row_order = order[row_count]
-      @board[0].length.times do |x|
-        #puts "x: #{x}, y: #{y}"
-        if x.even? && row_order == 'even'
-          @board[y][x] = Piece.new(color, [y,x], self)
-          piece_count += 1
-        elsif x.odd? && row_order == 'odd'
-          @board[y][x] = Piece.new(color, [y,x], self)
-          piece_count += 1
-        end
-        break if piece_count == @n_of_pieces
+  def proper_moves
+    move_array = []
+    8.times do |i|
+      8.times do |j|
+        move_array << [i,j] if ( i.even? && j.odd? ) || ( i.odd? && j.even? )
       end
-      row_count += 1
     end
+    move_array
   end
 
   def render
@@ -69,10 +65,8 @@ class Board
 
 
   def move_piece(start_pos, end_pos)
-    @board[end_pos[0]][end_pos[1]],
-    @board[start_pos[0]][start_pos[1]] =
-    @board[start_pos[0]][start_pos[1]],
-    nil
+    @board[end_pos[0]][end_pos[1]] = @board[start_pos[0]][start_pos[1]]
+    @board[start_pos[0]][start_pos[1]] = nil
   end
 
 end
@@ -96,11 +90,35 @@ class Piece
     end
   end
 
+  def perform_moves!(move_path)
+
+    move_path.each do |move|
+      raise NotImplementedError unless move.include?(@board.proper_moves)
+    end
+
+    (move_path.length - 1).time do |i|
+
+      perform_slide(move_path[i], move_path[i + 1])
+
+    end
+
+
+  end
+
+
+
+
+
+
+
+
+
   def perform_slide(start_pos, end_pos)
     raise "I can't let you do that, Dave" unless check_slide(start_pos, end_pos)
+    # return false unless check_slide(start_pos, end_pos)
 
     @board.move_piece(start_pos, end_pos)
-    @position = [start_pos, end_pos]
+    @position = end_pos
   end
 
   def perform_jump(start_pos, jump_path, end_pos)
@@ -118,9 +136,17 @@ class Piece
     #end
   end
 
+
+
+
+  #rewrite these methods entirely with the board dup thing.
+
   def check_slide(start_pos, end_pos)
     #puts 'hi'
-    return true unless @board.board[end_pos[0]] && @board.board[end_pos[0]][end_pos[1]]
+    return true unless @board.board[end_pos[0]] &&
+                       @board.board[end_pos[0], end_pos[1]]
+
+
     if !start_pos.nil? && end_pos.nil?
       if start_pos[0] + 1 == end_pos[0] &&
         if start_pos[1] + 1 == end_pos[1] || start_pos[1] - 1 == end_pos[1]
@@ -132,7 +158,8 @@ class Piece
   end
 
   def check_jump(start_pos, jump_path, end_pos)
-    if @board.board[start_pos[0]][start_pos[1]] && !jump_path.empty? && @board.board[end_pos[0]][end_pos[1]].nil?
+    if @board.board[start_pos[0], start_pos[1]] && !jump_path.empty? &&
+       @board.board[end_pos[0], end_pos[1]].nil?
       return true
     end
     false
