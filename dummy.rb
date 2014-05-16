@@ -1,5 +1,6 @@
 # encoding: utf-8
 require 'colorize'
+
 require_relative 'checkers'
 require_relative 'board'
 require_relative 'piece'

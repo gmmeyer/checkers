@@ -19,7 +19,7 @@ class Piece
     @position = position
     @board = board
     @type = type
-    board[position] = Piece.new(color, position, board, type)
+    board[position] = self
   end
 
 
